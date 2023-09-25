@@ -593,9 +593,10 @@ const utilities = {
             if (room.controller.level > 5) {
                 return 4;
             } else if (room.controller.level > 4) {
-                return 5;
+                return 7;
             }
-            return 6;
+            // return 6;
+            return 12; //increase
         } else {
             if (room.controller.level > 4) {
                 return 4;
@@ -613,7 +614,21 @@ const utilities = {
     clearAnchorBans: function(room) {
         if (Memory[room.name] == undefined || Memory[room.name].bannedAnchors == undefined) return;
         Memory[room.name].bannedAnchors = [];
-    }
+    },
+
+    claimerCapReached:  function(room, creepTypes) {
+        const spawn = room.find(FIND_MY_SPAWNS)[0];
+        const limit = 1;
+        let count = 0;
+        for (const name in Game.creeps) {
+            if (name.startsWith(spawn.name)
+                && Game.creeps[name].memory.type == creepTypes.CLAIMER) {
+                if (++count >= limit) return true;
+            }
+        }
+
+        return false;
+    },
 
 };
 

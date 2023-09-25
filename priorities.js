@@ -16,11 +16,14 @@ function getDensityRating(densityConstant) {
 function calculateWallRepairMeasure(room) {
     const prio = Math.max.apply(null, room.find(FIND_STRUCTURES)
         .filter(s => {
-            return (s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART)
+            return (s.structureType == STRUCTURE_WALL 
+                // || s.structureType == STRUCTURE_RAMPART //To not repair/build rampart first
+                )
                 && s.hits < s.hitsMax;
         }).map(w => 1 - (w.hits/utilities.desiredWallHitpoints))) * 100;
     // prevent infinitely high prio (if no walls that match the filtering criteria were found)
-    return prio > 100 ? 0 : prio;
+    // return prio > 100 ? 0 : prio;
+    return 1;
 }
 
 function calculateResourceMeasure(room) {
@@ -62,14 +65,18 @@ taskIdsToPriorityAllocators[taskconsts.tasks.ENERGY_HARVESTING.id] = function(ro
     if (storage == undefined) {
         return 100;
     } else {
+        console.log('['+room.name+'] '+'Energy Harvesting priority :' +((1 - utilities.calcEnergyQuotient(storage)) * 100));
         return (1 - utilities.calcEnergyQuotient(storage)) * 100;
     }
 };
 taskIdsToPriorityAllocators[taskconsts.tasks.ENERGY_TRANSFERRING.id] = function(room) {
-    return (1 - utilities.calcSpawningEnergyQuotient(room)) * 100;
+    // if(room.controller.level > 4)
+    // return (1 - utilities.calcSpawningEnergyQuotient(room)) * 100;
+    // else
+    return 90;
 };
 taskIdsToPriorityAllocators[taskconsts.tasks.CONTROLLER_UPGRADING.id] = function(room) {
-    if (room.controller.ticksToDowngrade < 2000) return 100;
+    if (room.controller.ticksToDowngrade < 20000) return 100;
     return 90;
 };
 taskIdsToPriorityAllocators[taskconsts.tasks.BRUISER_DEFENSE_SPAWNING.id] = function(room, externalOverride = null) {
@@ -122,10 +129,29 @@ taskIdsToPriorityAllocators[taskconsts.tasks.INFLUENCE_EXPANSION.id] = function(
     }
 };
 taskIdsToPriorityAllocators[taskconsts.tasks.ROAD_CONSTRUCTION.id] = function(room) {
+    if(
+        room.find(FIND_CONSTRUCTION_SITES,{
+            filter: struct => struct.structureType == STRUCTURE_ROAD || struct.structureType == STRUCTURE_CONTAINER
+        }).length > 0
+    )
     return 100;
+    else return 0;
 };
 taskIdsToPriorityAllocators[taskconsts.tasks.WALL_CONSTRUCTION.id] = function(room) {
-    return 100;
+    // return 100; // lower prio
+    // console.log('WALL CONSTRUCT room: '+JSON.stringify(room));
+    // console.log(JSON.stringify(
+    //    room.find(FIND_CONSTRUCTION_SITES,{
+    //     filter: struct => struct.structureType == STRUCTURE_WALL
+    //    }).length 
+    // ));
+
+    // if(room.find(FIND_CONSTRUCTION_SITES,{
+    //     filter: struct => struct.structureType == STRUCTURE_WALL
+    //    }).length > 0)
+    //    return 90
+    //    else
+    return 1;
 };
 taskIdsToPriorityAllocators[taskconsts.tasks.TOWER_REFUELING.id] = function(room) {
     let towerEnergyQuotients = room.find(FIND_MY_STRUCTURES, {
@@ -237,6 +263,7 @@ function getPrioritizedControlTasks(room, unitTaskPriosAfterAssignmentHistory, b
 function getPrioritizedUnitTasks(room, roomToCheck, pathCheckingPos, externalOverrides = {}) {
     let prioritizedTasks = {};
     Object.values(taskconsts.tasks).forEach(task => {
+        // console.log('looping task: '+JSON.stringify(task))
         if (task.assignmentType != null && task.assignmentType != taskconsts.assignmentTypes.SPAWN) {
             if (task.id == taskconsts.tasks.INFLUENCE_EXPANSION.id) {
                 if (externalOverrides[task.id]) {
@@ -254,7 +281,7 @@ function getPrioritizedUnitTasks(room, roomToCheck, pathCheckingPos, externalOve
             }
         }
     });
-
+    // console.log('['+room.name+'] '+ 'Prioritized Tasks' )
     return prioritizedTasks;
 }
 
@@ -272,6 +299,8 @@ function getAllPrioritizedTasks(room, roomToCheck, pathCheckingPos, unitTaskPrio
     Object.keys(unitTasks).forEach(key => {
         if (unitTasks[key].prio > 100) unitTasks[key].prio = 100;
     });
+
+    // console.log('['+room.name+'] '+'Unit Tasks: '+JSON.stringify(unitTasks));
 
     return {controlTasks: controlTasks, unitTasks: unitTasks};
 }

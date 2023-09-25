@@ -503,6 +503,10 @@ let scan = {
     wallFilter: s => {
         return (s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART)
             && s.hits < s.hitsMax;
+    },
+
+    containerFilter: structure => {
+        return structure.structureType == STRUCTURE_CONTAINER
     }
 
 };

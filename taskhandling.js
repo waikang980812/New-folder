@@ -117,7 +117,7 @@ function getMaxPrioTaskInfo(prioritizedUnitTasks, creep) {
     }
 }
 
-function decrementTaskPrio(tasks, taskId) {
+function decrementTaskPrio(tasks, taskId) { // deduct 15 prior for each assignment
     if (tasks[taskId].prio - 15 < 0) {
         tasks[taskId].prio = 0;
     } else {
@@ -197,12 +197,28 @@ function executeSpawningTasks(taskPrios, room) {
         const spawn = room.find(FIND_MY_SPAWNS)[0];
         let workerCount = 0;
         for (const name in Game.creeps) {
-            if (name.startsWith(spawn.name) && scan.workerFilter(Game.creeps[name])) {
+            // console.log("Creep " + name + ' Ticks to live:' + Game.creeps[name].ticksToLive)
+            if (name.startsWith(spawn.name) && scan.workerFilter(Game.creeps[name]) && (Game.creeps[name].ticksToLive == undefined || Game.creeps[name].ticksToLive > 60)) { // creep dying soon will not be calculated in, to trigger earlier spawn
                 workerCount++;
             }
         }
 
-        if (workerCount >= utilities.calcMaxWorkers(room)) return;
+        // console.log('ROOM INFO: '+ JSON.stringify(Memory[room.name].requiredClaimer));
+        // console.log('claimer cap:' + utilities.claimerCapReached(room,creeps.types) );
+
+        if (workerCount >= utilities.calcMaxWorkers(room) 
+        // && room.energyAvailable < room.energyCapacityAvailable //if max energy then spawn more commented to not spawn more
+    ) {
+            console.log("Worker Count Maxed and Energy cap not reached");
+            return;
+        }
+
+        
+        if(Memory[room.name].requiredClaimer != undefined && Memory[room.name].requiredClaimer == true && !utilities.claimerCapReached(room,creeps.types) ){
+            wantedType = creeps.types.CLAIMER;
+        }
+        
+        
     }
 
     try {
@@ -228,7 +244,7 @@ let taskhandling = {
     attackSquadSpecifications: attackSquadSpecifications,
 
     // relies on all creeps being in the same room
-    assignTasksToCreeps: function(prioritizedUnitTasks, targetCreeps) {
+    assignTasksToCreeps: function(prioritizedUnitTasks, targetCreeps) { // Assign Task to Creep Function
         if (targetCreeps.length == 0) return;
         const room = targetCreeps[0].room;
 
@@ -237,15 +253,16 @@ let taskhandling = {
 
         const storage = room.find(FIND_MY_STRUCTURES, {filter: scan.storageFilter})[0];
         // throttle ctrl upgrading if economy unstable
+        //if storage store less than 200k and controller ticks to downgrade more than 2000 then it will push to prior harvesting energy
         let assignedCtrlUpgrading = storage && storage.store[RESOURCE_ENERGY] <= 200000 && room.controller.ticksToDowngrade >= 2000;
 
         if (!assignedCtrlUpgrading) {
             assignedCtrlUpgrading = targetCreeps.filter(creep => {
                 return creep.memory.taskId == taskconsts.tasks.CONTROLLER_UPGRADING.id
-            }).length > 0;
+            }).length > 1; // Update from 0 to 1 to assign 2 controller upgrader
         }
         if (assignedCtrlUpgrading) prioritizedUnitTasks[taskconsts.tasks.CONTROLLER_UPGRADING.id].prio = 0;
-
+        console.log('['+room.name+'] '+'Check CONTROLLER UPGRADING PRIOR = ' +prioritizedUnitTasks[taskconsts.tasks.CONTROLLER_UPGRADING.id].prio +' | Storage Energy: '+ storage.store[RESOURCE_ENERGY]);
 
         let assignedReceiverOperation = storage && storage.store[RESOURCE_ENERGY] <= 25000 && !scan.containsEnemies(room);
         if (!assignedReceiverOperation) {
@@ -357,6 +374,9 @@ let taskhandling = {
 
     executeUnitTasks: function() {
         for (const creep of Object.values(Game.creeps)) {
+
+            if (Game.time % 11 == 0) console.log('['+creep.room.name+'] ['+ creep.name + '] Task:' + Object.keys(taskconsts.tasks).find(key => taskconsts.tasks[key].id == creep.memory.taskId));
+            
             if (creep.memory.taskId == -1) {
                 reassign(creep);
             }
@@ -407,6 +427,7 @@ let taskhandling = {
                             pathing.walkCheapestPath(creep, FIND_MY_SPAWNS, 5);
                         } else if (creep.memory.renewalDirection == 'flag') {
                             const flagFilter = flag => flag.name.endsWith('_ASA');
+                            // const attackflag = flag => flag.name.endsWith('_ATTK');
                             if (creep.pos.findInRange(FIND_FLAGS, 3, {filter: flagFilter}).length == 0) {
                                 const flag = Game.flags[creep.room.name + '_ASA'];
                                 if (flag == undefined) {

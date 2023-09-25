@@ -137,7 +137,8 @@ let pathing = {
         let result = getCheapestPath(creep.pos, targets, false, safe, false, flee);
 
         if (result.incomplete || result.path == undefined) {
-            utilities.log('No path could be found from the creep: ' + creep.name + ' to the targets: ' + JSON.stringify(targets));
+            // utilities.log('No path could be found from the creep: ' + creep.name + ' to the targets: ' + JSON.stringify(targets) + ' results: '+ JSON.stringify(result));
+            utilities.log('Get Cheapest Path function return for '+ creep.name + ' return incomplete results');
             return false;
         }
 

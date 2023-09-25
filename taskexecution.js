@@ -7,7 +7,7 @@ const taskconsts = require('tasks');
 const utilities = require('utilities');
 
 
-const storageWithdrawingThresholds = {'default': 200000, 'siege': 50000};
+const storageWithdrawingThresholds = { 'default': 200000, 'siege': 50000 };
 let findConstsToFilters = [{}, {}, {}, {}, {}];
 const ignoreUnbreakable = filter => {
     return s => {
@@ -110,12 +110,12 @@ function interactWithTargets(creep, orderedTargetSpecifiers, action, actionRange
     for (const spec of orderedTargetSpecifiers) {
         let [findConst, f] = Object.entries(spec)[0];
         findConst = parseInt(findConst);
-        targets = creep.pos.findInRange(findConst, actionRange, {filter: f});
+        targets = creep.pos.findInRange(findConst, actionRange, { filter: f });
 
         if (targets.length > 0) {
             action(creep, targets[0]);
             return true;
-        } else if (pathing.walkCheapestPath(creep, creep.room.find(findConst, {filter: f}), 5, false, actionRange)) {
+        } else if (pathing.walkCheapestPath(creep, creep.room.find(findConst, { filter: f }), 5, false, actionRange)) {
             return true;
         }
     }
@@ -125,17 +125,17 @@ function interactWithTargets(creep, orderedTargetSpecifiers, action, actionRange
 
 function supportExpansionTroops(creep, stationary = false) {
     if (!stationary) {
-        creep.moveTo(creep.pos.findClosestByPath(FIND_MY_CREEPS, {filter: c => scan.bruiserFilter(c) || scan.demolisherFilter(c)}));
+        creep.moveTo(creep.pos.findClosestByPath(FIND_MY_CREEPS, { filter: c => scan.bruiserFilter(c) || scan.demolisherFilter(c) }));
     }
 
     if (creep.hits < creep.hitsMax) {
         creep.heal(creep);
     } else {
-        const targets = creep.pos.findInRange(FIND_MY_CREEPS, 1, {filter: c => c.hits < c.hitsMax});
+        const targets = creep.pos.findInRange(FIND_MY_CREEPS, 1, { filter: c => c.hits < c.hitsMax });
         if (targets.length > 0) {
             creep.heal(targets[0]);
         } else {
-            const targets = creep.pos.findInRange(FIND_MY_CREEPS, 3, {filter: c => c.hits < c.hitsMax});
+            const targets = creep.pos.findInRange(FIND_MY_CREEPS, 3, { filter: c => c.hits < c.hitsMax });
             if (targets.length > 0) creep.rangedHeal(targets[0]);
         }
     }
@@ -159,9 +159,9 @@ function kiteHostiles(creep, orderedFallbackTargetSpecifiers, defaultTask = 'esc
     };
 
     const handleDangerousEnemies = (creep, triedToAttack) => {
-        if (triedToAttack && creep.pos.findInRange(FIND_HOSTILE_CREEPS, safetyRange, {filter: utilities.canAttack}).length > 0) {
+        if (triedToAttack && creep.pos.findInRange(FIND_HOSTILE_CREEPS, safetyRange, { filter: utilities.canAttack }).length > 0) {
             if (!pathing.walkCheapestPath(creep, FIND_HOSTILE_CREEPS, 3, false, actionRange, false, true)) {
-                creep.moveTo(creep.pos.findClosestByPath(FIND_MY_CREEPS, {filter: scan.medicFilter}));
+                creep.moveTo(creep.pos.findClosestByPath(FIND_MY_CREEPS, { filter: scan.medicFilter }));
             }
         } else {
             const proximitySpec = {
@@ -174,7 +174,7 @@ function kiteHostiles(creep, orderedFallbackTargetSpecifiers, defaultTask = 'esc
                 creep.moveTo(target);
             } else {
                 if (defaultTask == 'demolish') return true;
-                creep.moveTo(creep.pos.findClosestByPath(FIND_MY_CREEPS, {filter: c => scan.bruiserFilter(c) || scan.demolisherFilter(c)}));
+                creep.moveTo(creep.pos.findClosestByPath(FIND_MY_CREEPS, { filter: c => scan.bruiserFilter(c) || scan.demolisherFilter(c) }));
                 if (!triedToAttack) {
                     const targets = creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, actionRange);
                     if (targets.length > 0) targetAction(creep, targets[0]);
@@ -186,8 +186,8 @@ function kiteHostiles(creep, orderedFallbackTargetSpecifiers, defaultTask = 'esc
     const targets = creep.pos.findInRange(FIND_HOSTILE_CREEPS, actionRange);
     const triedToAttack = targets.length > 0 && [OK, ERR_NO_BODYPART].includes(targetAction(creep, targets[0]));
 
-    const nearestHealer = creep.pos.findClosestByPath(FIND_MY_CREEPS, {filter: scan.medicFilter});
-    if (creep.hits/creep.hitsMax < 2/3 && nearestHealer) {
+    const nearestHealer = creep.pos.findClosestByPath(FIND_MY_CREEPS, { filter: scan.medicFilter });
+    if (creep.hits / creep.hitsMax < 2 / 3 && nearestHealer) {
         creep.moveTo(nearestHealer);
     } else {
         const enemies = creep.room.find(FIND_HOSTILE_CREEPS);
@@ -221,7 +221,7 @@ function expandAggressively(creep) {
             return tower.store[RESOURCE_ENERGY] >= 10;
         }).length > 0;
 
-        const towerTarget = creep.pos.findClosestByPath(FIND_HOSTILE_STRUCTURES, {filter: scan.towerFilter});
+        const towerTarget = creep.pos.findClosestByPath(FIND_HOSTILE_STRUCTURES, { filter: scan.towerFilter });
         const moveToTower = creep => {
             creep.moveTo(towerTarget);
         };
@@ -235,7 +235,7 @@ function expandAggressively(creep) {
         };
 
         const hitsDelta = calcHitsDelta(creep);
-        const hitsQuotient = creep.hits/creep.hitsMax;
+        const hitsQuotient = creep.hits / creep.hitsMax;
 
         if (!dangerousTowerExists || utilities.calcDistance(creep.pos, towerTarget.pos) < 2) {
             creep.memory.tankedTowerEnergy = true;
@@ -313,7 +313,7 @@ function construct(creep, siteFilter, noIdling = false, safePathing = false, ran
     }
 
     if (creep.memory.task == 'building' && creep.memory.building == null) {
-        const sites = creep.room.find(FIND_MY_CONSTRUCTION_SITES, {filter: siteFilter});
+        const sites = creep.room.find(FIND_MY_CONSTRUCTION_SITES, { filter: siteFilter });
         if (sites.length == 0) {
             return idle(creep);
         } else {
@@ -321,7 +321,7 @@ function construct(creep, siteFilter, noIdling = false, safePathing = false, ran
             let maxIndex = 0;
             let progressRatio = null;
             for (let i = 0; i < sites.length; i++) {
-                progressRatio = sites[i].progress/sites[i].progressTotal;
+                progressRatio = sites[i].progress / sites[i].progressTotal;
                 if (progressRatio > maxProgressRatio) {
                     maxProgressRatio = progressRatio;
                     maxIndex = i;
@@ -332,7 +332,7 @@ function construct(creep, siteFilter, noIdling = false, safePathing = false, ran
             if (maxProgressRatio == 0) {
                 maxIndex = Math.floor(Math.random() * (sites.length));
             }
-            creep.memory.building = {'pos': sites[maxIndex].pos};
+            creep.memory.building = { 'pos': sites[maxIndex].pos };
         }
     }
 
@@ -347,7 +347,7 @@ function construct(creep, siteFilter, noIdling = false, safePathing = false, ran
             } else {
                 const tConfig = {
                     mode: 'consecutive',
-                    threshold: {num: 5, adjacencyMargin: 2},
+                    threshold: { num: 5, adjacencyMargin: 2 },
                     rmCallHistOnLimit: true,
                     diversionTarget: () => idle(creep)
                 };
@@ -411,13 +411,13 @@ function repair(creep, siteFilter, withdrawingFilter, noIdling = false, safePath
 
     if (creep.memory.task == 'repairing' && creep.memory.repairing == null) {
 
-        const sites = creep.room.find(FIND_STRUCTURES, {filter: siteFilter})
+        const sites = creep.room.find(FIND_STRUCTURES, { filter: siteFilter })
             .sort((a, b) => a.hits - b.hits);
 
         if (sites.length == 0) {
             return idle(creep);
         } else {
-            creep.memory.repairing = {'pos': sites[0].pos};
+            creep.memory.repairing = { 'pos': sites[0].pos };
         }
     }
 
@@ -476,7 +476,7 @@ function setupNewRoom(creep) {
     if (!travelToExpansionTarget(creep)) return;
 
     if (construct(creep, site => site.structureType == STRUCTURE_SPAWN, true) == 1) {
-        const structures = creep.room.find(FIND_HOSTILE_STRUCTURES, {filter: ignoreUnbreakable(entity => true)});
+        const structures = creep.room.find(FIND_HOSTILE_STRUCTURES, { filter: ignoreUnbreakable(entity => true) });
         if (structures.length > 0) {
             const structures = creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 1);
             if (structures.length > 0) {
@@ -535,7 +535,7 @@ function mineRemotely(creep) {
     };
 
     const containsDangerousEnemies = room => {
-        return room.find(FIND_HOSTILE_CREEPS, {filter: utilities.canAttack}).length > 0;
+        return room.find(FIND_HOSTILE_CREEPS, { filter: utilities.canAttack }).length > 0;
     };
 
     if (containsDangerousEnemies(creep.room) && creep.room.name == creep.memory.miningOrigin) {
@@ -568,7 +568,7 @@ function mineRemotely(creep) {
                 creep.harvest(sources[0]);
             } else {
                 if (!pathing.walkCheapestPath(creep, FIND_SOURCES_ACTIVE, 5)) {
-                    const spec = [{[FIND_STRUCTURES]: s => s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART}];
+                    const spec = [{ [FIND_STRUCTURES]: s => s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART }];
                     interactWithTargets(creep, spec, (creep, target) => creep.dismantle(target), 1);
                 }
             }
@@ -584,7 +584,10 @@ function replenishEnergy(creep, targetsFilter, secondaryTargetsFilter = null, pr
     } else if (creep.store[RESOURCE_ENERGY] == creep.store.getCapacity(RESOURCE_ENERGY)) {
         creep.memory.harvesting = false;
     }
-
+    
+    if(creep.taskId == 17)
+    console.log('['+creep.room.name+'] ['+ creep.name + '] replenish Energy:' + Object.keys(taskconsts.tasks).find(key => taskconsts.tasks[key].id == creep.memory.taskId) + ' Harvesting: '+ creep.memory.harvesting);
+    
     if (creep.memory.harvesting) {
         let harvestDirectly = true;
         if (prioWithdrawingFilter != null) {
@@ -630,7 +633,7 @@ function replenishEnergy(creep, targetsFilter, secondaryTargetsFilter = null, pr
         }
 
         if (secondaryTargetsFilter != null &&
-            creep.room.find(FIND_MY_STRUCTURES, {filter: targetsFilter}).length == 0) {
+            creep.room.find(FIND_MY_STRUCTURES, { filter: targetsFilter }).length == 0) {
 
             const targets = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
                 filter: secondaryTargetsFilter
@@ -646,13 +649,18 @@ function replenishEnergy(creep, targetsFilter, secondaryTargetsFilter = null, pr
 }
 
 let unitTaskIdsToTaskExecutors = {};
-unitTaskIdsToTaskExecutors[taskconsts.tasks.ENERGY_HARVESTING.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.ENERGY_HARVESTING.id] = function (creep) {
     if (!mineRemotely(creep)) {
+        // console.log('STURCTURE CONTAINER: ' + (site => site.structureType == STRUCTURE_CONTAINER));
+        const containerNearby = creep.pos.findInRange(FIND_STRUCTURES, 10, {
+            filter: s => s.structureType == STRUCTURE_CONTAINER
+        }).length > 0;
+        // console.log('Container nearby: '+ containerNearby);
         replenishEnergy(creep, scan.structureDepositingWrapper(scan.storageFilter), scan.energyStoragePrimaryFilter, null, true);
     }
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.CONTROLLER_UPGRADING.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.CONTROLLER_UPGRADING.id] = function (creep) {
     if (creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.upgrading = false;
     } else if (!creep.memory.upgrading && creep.store.getFreeCapacity() == 0) {
@@ -693,15 +701,15 @@ unitTaskIdsToTaskExecutors[taskconsts.tasks.CONTROLLER_UPGRADING.id] = function(
     }
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.TOWER_CONSTRUCTION.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.TOWER_CONSTRUCTION.id] = function (creep) {
     construct(creep, site => site.structureType == STRUCTURE_TOWER);
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.EXTENSION_CONSTRUCTION.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.EXTENSION_CONSTRUCTION.id] = function (creep) {
     construct(creep, site => site.structureType == STRUCTURE_EXTENSION, false, true, 1);
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.INFLUENCE_EXPANSION.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.INFLUENCE_EXPANSION.id] = function (creep) {
     if (scan.claimerFilter(creep)) {
         claim(creep);
     } else if (scan.workerFilter(creep)) {
@@ -711,43 +719,55 @@ unitTaskIdsToTaskExecutors[taskconsts.tasks.INFLUENCE_EXPANSION.id] = function(c
     }
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.ROAD_CONSTRUCTION.id] = function(creep) {
-    construct(creep, site => site.structureType == STRUCTURE_ROAD);
+unitTaskIdsToTaskExecutors[taskconsts.tasks.ROAD_CONSTRUCTION.id] = function (creep) {
+    construct(creep, site => site.structureType == STRUCTURE_ROAD || site.structureType == STRUCTURE_CONTAINER);
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.WALL_CONSTRUCTION.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.WALL_CONSTRUCTION.id] = function (creep) {
     const towerExists = creep.room.find(FIND_MY_STRUCTURES, {
         filter: scan.towerFilter
     }).length > 0;
     const fallbackFilter = site => site.structureType == STRUCTURE_WALL;
-    const siteFilter = towerExists ? site => site.structureType == STRUCTURE_WALL || site.structureType == STRUCTURE_RAMPART : fallbackFilter;
+    const siteFilter = towerExists ? site => site.structureType == STRUCTURE_WALL
+        // || site.structureType == STRUCTURE_RAMPART //comment to not build rampart
+        : fallbackFilter;
     construct(creep, siteFilter, false, true);
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.TOWER_REFUELING.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.TOWER_REFUELING.id] = function (creep) {
     replenishEnergy(creep, scan.towerRefuelingFilter, null, scan.structureWithdrawingWrapper(scan.storageFilter, getStrgWThreshold(creep.room)));
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.SCOUTING.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.SCOUTING.id] = function (creep) {
     const target = creep.memory.scoutingTarget;
     creep.moveTo(utilities.objToRoomPos(target));
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.STORAGE_CONSTRUCTION.id] = function(creep) {
-    construct(creep, site => site.structureType == STRUCTURE_STORAGE);
+unitTaskIdsToTaskExecutors[taskconsts.tasks.STORAGE_CONSTRUCTION.id] = function (creep) {
+    // console.log(site.structureType == STRUCTURE_CONTAINER)
+
+    construct(creep, site => site.structureType == STRUCTURE_STORAGE 
+        || site.structureType == STRUCTURE_CONTAINER
+        );
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.ENERGY_TRANSFERRING.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.ENERGY_TRANSFERRING.id] = function (creep) {
     const spawn = creep.room.find(FIND_MY_SPAWNS)[0];
-    if (utilities.calcDistance(creep.pos, spawn.pos) < 10
-        && creep.store[RESOURCE_ENERGY] <= 49) {
-        const eHeap = spawn.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: h => h.amount >= 50})[0];
-        if (eHeap) {
-            if (creep.pickup(eHeap) == ERR_NOT_IN_RANGE) {
-                pathing.walkCheapestPath(creep, [eHeap], 5);
+    // console.log('debug pos:' + JSON.stringify(spawn.pos) + ' creep pos:' + creep.pos)
+    try {
+        if (utilities.calcDistance(creep.pos, spawn.pos) < 10
+            && creep.store[RESOURCE_ENERGY] <= 49) {
+            const eHeap = spawn.pos.findInRange(FIND_DROPPED_RESOURCES, 10, { filter: h => h.amount >= 50 })[0]; // changed from 1 to 10 for the range to pickup dropped far resources
+            if (eHeap) {
+                if (creep.pickup(eHeap) == ERR_NOT_IN_RANGE) {
+                    pathing.walkCheapestPath(creep, [eHeap], 5);
+                }
+                return;
             }
-            return;
         }
+    }catch(e){
+        console.log('unitTaskIdsToTaskExecutors [ENERGY_TRANSFERRING] thorw error - Error: ' + e);
+        
     }
 
     const configPrimaryFilter = linkThreshold => {
@@ -757,22 +777,23 @@ unitTaskIdsToTaskExecutors[taskconsts.tasks.ENERGY_TRANSFERRING.id] = function(c
         }
     };
 
-    if (creep.room.find(FIND_MY_STRUCTURES, {filter: configPrimaryFilter(500)}).length > 0) {
+    if (creep.room.find(FIND_MY_STRUCTURES, { filter: configPrimaryFilter(500) }).length > 0) {
         const withdrawingFilter = scan.structureWithdrawingWrapper(scan.storageFilter, creep.store.getFreeCapacity());
         replenishEnergy(creep, configPrimaryFilter(50), null, withdrawingFilter, false, 49);
     } else {
+       
         replenishEnergy(creep, scan.structureDepositingWrapper(scan.storageFilter), scan.energyStoragePrimaryFilter, null);
     }
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.WALL_REPAIRING.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.WALL_REPAIRING.id] = function (creep) {
     repair(creep, s => {
         return (s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART)
             && s.hits < s.hitsMax;
     }, structure => scan.structureWithdrawingWrapper(scan.storageFilter, getStrgWThreshold(creep.room))(structure) || scan.linkWithdrawingFilter(structure));
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.CREEP_DEFENSE.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.CREEP_DEFENSE.id] = function (creep) {
     const target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     if (target == null) {
         creep.memory.taskId = -1;
@@ -793,11 +814,11 @@ unitTaskIdsToTaskExecutors[taskconsts.tasks.CREEP_DEFENSE.id] = function(creep) 
     }
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.LINK_CONSTRUCTION.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.LINK_CONSTRUCTION.id] = function (creep) {
     construct(creep, site => site.structureType == STRUCTURE_LINK);
 };
 
-unitTaskIdsToTaskExecutors[taskconsts.tasks.RECEIVER_OPERATION.id] = function(creep) {
+unitTaskIdsToTaskExecutors[taskconsts.tasks.RECEIVER_OPERATION.id] = function (creep) {
     rmInvalidTask(creep, ['supplying', 'harvesting']);
     if (creep.memory.task == 'supplying' && creep.store[RESOURCE_ENERGY] == 0 || creep.memory.task == undefined) {
         creep.memory.task = 'harvesting';
@@ -825,7 +846,7 @@ unitTaskIdsToTaskExecutors[taskconsts.tasks.RECEIVER_OPERATION.id] = function(cr
         if (sites.length == 0) {
             return;
         } else {
-            creep.memory.supplying = {'pos': sites[0].pos};
+            creep.memory.supplying = { 'pos': sites[0].pos };
         }
     }
 
@@ -870,7 +891,7 @@ let taskexecution = {
 
     unitTaskIdsToTaskExecutors: unitTaskIdsToTaskExecutors,
 
-    depositEnergy: function(creep) {
+    depositEnergy: function (creep) {
         if (creep.store[RESOURCE_ENERGY] == 0) return false;
 
         const storage = creep.room.find(FIND_MY_STRUCTURES, {

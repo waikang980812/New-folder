@@ -49,6 +49,7 @@ function createMaxCreepBody(creeptype, energyAmount) {
     const baseBodyLength = typesToBaseBodies[creeptype].length;
 
     if (creeptype == types.WORKER || creeptype == types.SCOUT || creeptype == types.TANK || creeptype == types.CLAIMER) {
+        if(creeptype == types.CLAIMER) console.log('Calculating CLAIMER');
         for (let i = 0; i < baseBodyMultiplier; i++) {
             if (body.length + baseBodyLength <= 50) body.push(...typesToBaseBodies[creeptype]);
         }
@@ -83,6 +84,7 @@ const creeps = {
     // throws an exception if there is not enough energy to spawn a creep of the given type (with minimum bodyparts)
     // if no exception is thrown, a creep of maximum bodypart count is spawned (no energy is saved intentionally)
     spawnCreep: function(room, creeptype) {
+        console.log('Spawn Creep function Called / Creep Type = ' + creeptype);
         if (!isValid(creeptype)) throw new CreepTypeNotValidException();
 
         const claimerCapReached = (room, limit) => {

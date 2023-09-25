@@ -37,7 +37,11 @@ module.exports.loop = function() {
         Memory.roomActionIndex = -1;
         Memory.wallPlacingRoomIndex = -1;
         Memory.exitFinderIndex = -1;
+        
     }
+
+    
+
 
     if (Game.time % 83 == 0) {
         resizeRoomSpecificMemory();
@@ -57,6 +61,9 @@ module.exports.loop = function() {
         }
     }
 
+    
+    
+
     utilities.controlTowers();
 
     const linkOperationRoom = occupiedRooms[Game.time % occupiedRooms.length];
@@ -75,6 +82,7 @@ module.exports.loop = function() {
     if (Game.time % 7 == 0) {
         const actionIndex = utilities.getRoomActionIndex();
         const targetRoom = occupiedRooms[Memory.roomIndex];
+        // console.log('Target Room: '+ JSON.stringify(occupiedRooms[Memory.roomIndex]));
         if (actionIndex == 0) {
             placement.placeRoads(targetRoom);
         } else if (actionIndex == 1) {
@@ -94,6 +102,12 @@ module.exports.loop = function() {
     }
 
     if (Game.time % 11 == 0) {
+        occupiedRooms.forEach(room => {
+            // console.log(JSON.stringify(room));
+            console.log( '['+room.name+'] - Energy available:' +
+                room.energyAvailable + ' Energy Cap:'+room.energyCapacityAvailable + ' Energy not reach cap:' + JSON.stringify(room.energyAvailable < room.energyCapacityAvailable)
+            )// debug here
+        });
         utilities.cutMyLifeIntoPieces(occupiedRooms);
     }
 
@@ -177,7 +191,7 @@ module.exports.loop = function() {
         occupiedRooms.forEach(room => placement.tryPlacingAStorage(room));
         occupiedRooms.forEach(room => utilities.clearAnchorBans(room));
     }
-
+    // occupiedRooms.forEach(room => placement.tryPlacingAStorage(room));
     utilities.updateCreepRooms();
     utilities.refreshWorkerDeathRecords(occupiedRooms);
     utilities.clearDeadCreepsMemory(utilities.processCreepDeath);
